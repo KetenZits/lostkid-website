@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Send, Check, AlertCircle, Mail, Clock, RotateCcw, MapPin } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 interface FieldProps {
   label: string;
@@ -15,7 +15,7 @@ interface FieldProps {
   type?: string;
 }
 
-const fieldVariants = {
+const fieldVariants: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: (i: number) => ({
     opacity: 1,
