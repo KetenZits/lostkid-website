@@ -51,7 +51,8 @@ const SLIDES = [
   },
 ];
 
-const INTERVAL_MS = 2000;
+// 5.5s gives people enough time to actually read the headline before it cross-fades
+const INTERVAL_MS = 5500;
 
 const textVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -61,20 +62,24 @@ const textVariants = {
 
 export default function HomeHero() {
   const [[page, dir], setPage] = useState([0, 0]);
+  const [isPaused, setIsPaused] = useState(false);
 
   const idx = ((page % SLIDES.length) + SLIDES.length) % SLIDES.length;
   const slide = SLIDES[idx];
 
-  // Auto-advance every 2 seconds
+  // Auto-advance — pauses while the visitor is actually reading (hovering)
   useEffect(() => {
+    if (isPaused) return;
     const t = setInterval(() => {
       setPage(([p]) => [p + 1, 1]);
     }, INTERVAL_MS);
     return () => clearInterval(t);
-  }, []);
+  }, [isPaused]);
 
   return (
     <section
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
       className={`relative min-h-[92vh] flex items-center overflow-hidden transition-colors duration-700 ${slide.bgClass}`}
     >
       {/* Background image — cross-fades between slides */}
@@ -98,6 +103,11 @@ export default function HomeHero() {
             sizes="100vw"
           />
           <div className={`absolute inset-0 ${slide.overlayClass}`} />
+          {/* Faint diamond quilting texture ties the backdrop back to the actual product stitching */}
+          <div
+            className={`quilt-texture absolute inset-0 opacity-[0.05] ${slide.dark ? "text-white" : "text-brand-brown"
+              }`}
+          />
         </motion.div>
       </AnimatePresence>
 
@@ -113,11 +123,10 @@ export default function HomeHero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.3 }}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 mb-8 shadow-sm text-xs font-semibold tracking-widest uppercase ${
-                slide.dark
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 mb-8 shadow-sm text-xs font-semibold tracking-widest uppercase ${slide.dark
                   ? "bg-white/10 border border-white/20 text-white"
                   : "bg-brand-cream border border-brand-sand text-brand-brown-light"
-              }`}
+                }`}
             >
               <span className={`w-2 h-2 rounded-full ${slide.dark ? "bg-white/50" : "bg-brand-brown"}`} />
               {slide.badge}
@@ -134,9 +143,8 @@ export default function HomeHero() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className={`font-display text-6xl md:text-7xl lg:text-8xl font-bold leading-none tracking-tight mb-6 whitespace-pre-line ${
-                slide.dark ? "text-white" : "text-brand-brown"
-              }`}
+              className={`font-display text-6xl md:text-7xl lg:text-8xl font-bold leading-none tracking-tight mb-6 whitespace-pre-line ${slide.dark ? "text-white" : "text-brand-brown"
+                }`}
             >
               {slide.headline}
             </motion.h1>
@@ -150,9 +158,8 @@ export default function HomeHero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.35, delay: 0.05 }}
-              className={`text-lg leading-relaxed mb-10 max-w-md ${
-                slide.dark ? "text-white/70" : "text-brand-brown-light"
-              }`}
+              className={`text-lg leading-relaxed mb-10 max-w-md ${slide.dark ? "text-white/70" : "text-brand-brown-light"
+                }`}
             >
               {slide.sub}
             </motion.p>
@@ -170,22 +177,20 @@ export default function HomeHero() {
             >
               <Link
                 href={slide.cta.href}
-                className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-sm transition-colors ${
-                  slide.dark
+                className={`inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-sm transition-colors ${slide.dark
                     ? "bg-white text-accent-navy hover:bg-white/90"
                     : "bg-brand-brown text-brand-cream hover:bg-brand-brown-dark"
-                }`}
+                  }`}
               >
                 {slide.cta.label}
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href={slide.ctaSecondary.href}
-                className={`inline-flex items-center justify-center gap-2 border rounded-full px-8 py-4 font-semibold text-sm transition-colors ${
-                  slide.dark
+                className={`inline-flex items-center justify-center gap-2 border rounded-full px-8 py-4 font-semibold text-sm transition-colors ${slide.dark
                     ? "border-white/30 text-white hover:bg-white/10"
                     : "border-brand-brown text-brand-brown hover:bg-brand-cream-dark"
-                }`}
+                  }`}
               >
                 {slide.ctaSecondary.label}
               </Link>
@@ -194,37 +199,53 @@ export default function HomeHero() {
         </div>
       </div>
 
-      {/* Floating circular patch decoration */}
-      <div
-        className="absolute right-[8%] top-1/2 -translate-y-1/2 hidden lg:block animate-float"
-      >
-        <div className={`circular-patch w-40 h-40 ${slide.dark ? "border-white/30 bg-white/10" : ""}`}>
-          <div className="circular-patch-inner">
-            <span
-              className={`font-display text-2xl font-bold text-center leading-none ${
-                slide.dark ? "text-white" : ""
-              }`}
-            >
-              LOST<br />KID
-            </span>
+      {/* Floating circular patch decoration — now ringed with a dashed "stitch" to read as sewn-on */}
+      <div className="absolute right-[8%] top-1/2 -translate-y-1/2 hidden lg:block">
+        <div
+          className={`absolute -inset-3 rounded-full border-2 border-dashed animate-spin-slow ${slide.dark ? "border-white/25" : "border-brand-brown/25"
+            }`}
+        />
+        <div className="animate-float">
+          <div className={`circular-patch w-40 h-40 ${slide.dark ? "border-white/30 bg-white/10" : ""}`}>
+            <div className="circular-patch-inner">
+              <span
+                className={`font-display text-2xl font-bold text-center leading-none ${slide.dark ? "text-white" : ""
+                  }`}
+              >
+                LOST<br />KID
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Slide dots — only dots, no arrows */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {SLIDES.map((s, i) => (
-          <button
-            key={s.id}
-            onClick={() => setPage([i, i > idx ? 1 : -1])}
-            aria-label={`Go to slide ${i + 1}`}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === idx
-                ? slide.dark ? "w-6 bg-white" : "w-6 bg-brand-brown"
-                : slide.dark ? "w-1.5 bg-white/30" : "w-1.5 bg-brand-brown/30"
+      {/* Slide dots + a quiet 01/03-style index — real sequence info, not decoration */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 z-10">
+        <span
+          className={`text-[11px] font-semibold tracking-widest tabular-nums ${slide.dark ? "text-white/50" : "text-brand-brown/40"
             }`}
-          />
-        ))}
+        >
+          {String(idx + 1).padStart(2, "0")}
+        </span>
+        <div className="flex gap-2">
+          {SLIDES.map((s, i) => (
+            <button
+              key={s.id}
+              onClick={() => setPage([i, i > idx ? 1 : -1])}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${i === idx
+                  ? slide.dark ? "w-6 bg-white" : "w-6 bg-brand-brown"
+                  : slide.dark ? "w-1.5 bg-white/30" : "w-1.5 bg-brand-brown/30"
+                }`}
+            />
+          ))}
+        </div>
+        <span
+          className={`text-[11px] font-semibold tracking-widest tabular-nums ${slide.dark ? "text-white/30" : "text-brand-brown/25"
+            }`}
+        >
+          {String(SLIDES.length).padStart(2, "0")}
+        </span>
       </div>
 
       {/* Progress bar */}
@@ -233,7 +254,7 @@ export default function HomeHero() {
           key={`progress-${idx}`}
           className={`h-full ${slide.dark ? "bg-white/50" : "bg-brand-brown/40"}`}
           initial={{ width: "0%" }}
-          animate={{ width: "100%" }}
+          animate={{ width: isPaused ? undefined : "100%" }}
           transition={{ duration: INTERVAL_MS / 1000, ease: "linear" }}
         />
       </div>

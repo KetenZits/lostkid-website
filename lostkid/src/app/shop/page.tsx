@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, X } from "lucide-react";
+import { SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAllProducts } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
@@ -16,6 +16,11 @@ const COLOR_HEX: Record<string, string> = {
   Sage: "#9AB09E",
   Cocoa: "#5C3D2E",
 };
+// Swatches light enough that a white checkmark won't read well on them
+const LIGHT_COLORS = new Set(["Cream", "Pink"]);
+
+const PRICE_MIN = 20;
+const PRICE_MAX = 200;
 
 type SortOption = "newest" | "price-asc" | "price-desc" | "bestselling";
 
@@ -39,91 +44,144 @@ const FilterPanel = ({
   setMaxPrice,
   hasActiveFilters,
   clearFilters,
-}: FilterPanelProps) => (
-  <div className="space-y-8">
-    <div>
-      <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light mb-3">
-        Category
-      </p>
-      <div className="space-y-2">
-        {[
-          { value: "all", label: "All Products" },
-          { value: "bags", label: "Bags & Totes" },
-          { value: "accessories", label: "Accessories" },
-        ].map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => setSelectedCategory(value)}
-            className={`block w-full text-left text-sm py-1.5 transition-colors ${
-              selectedCategory === value
-                ? "font-semibold text-brand-brown"
-                : "text-brand-brown-light hover:text-brand-brown"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
+}: FilterPanelProps) => {
+  const pricePercent = ((maxPrice - PRICE_MIN) / (PRICE_MAX - PRICE_MIN)) * 100;
 
-    <div>
-      <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light mb-3">
-        Color
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {ALL_COLORS.map((color) => (
-          <button
-            key={color}
-            onClick={() => toggleColor(color)}
-            title={color}
-            className={`w-8 h-8 rounded-full border-2 transition-all ${
-              selectedColors.includes(color)
-                ? "border-brand-brown scale-110"
-                : "border-transparent hover:border-brand-brown-light"
-            }`}
-            style={{ backgroundColor: COLOR_HEX[color] }}
-            aria-label={color}
-            aria-pressed={selectedColors.includes(color)}
-          />
-        ))}
-      </div>
-    </div>
-
-    <div>
-      <div className="flex justify-between items-center mb-3">
-        <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light">
-          Max Price
+  return (
+    <div className="space-y-7">
+      <div>
+        <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light mb-3">
+          Category
         </p>
-        <span className="text-sm font-semibold text-brand-brown">
-          ${maxPrice}
-        </span>
+        <div className="space-y-0.5">
+          {[
+            { value: "all", label: "All Products" },
+            { value: "bags", label: "Bags & Totes" },
+            { value: "accessories", label: "Accessories" },
+          ].map(({ value, label }) => {
+            const active = selectedCategory === value;
+            return (
+              <button
+                key={value}
+                onClick={() => setSelectedCategory(value)}
+                aria-pressed={active}
+                className={`flex w-full items-center text-left text-sm py-1.5 pl-3 border-l-2 transition-all duration-200 ${active
+                    ? "font-semibold text-brand-brown border-brand-brown"
+                    : "text-brand-brown-light border-transparent hover:text-brand-brown hover:border-brand-sand"
+                  }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <input
-        type="range"
-        min={20}
-        max={200}
-        step={5}
-        value={maxPrice}
-        onChange={(e) => setMaxPrice(Number(e.target.value))}
-        className="w-full accent-brand-brown"
-        aria-label="Maximum price filter"
-      />
-      <div className="flex justify-between text-xs text-brand-brown-light mt-1">
-        <span>$20</span>
-        <span>$200</span>
-      </div>
-    </div>
 
-    {hasActiveFilters && (
-      <button
-        onClick={clearFilters}
-        className="flex items-center gap-1.5 text-sm text-brand-brown-light hover:text-brand-brown transition-colors"
-      >
-        <X className="w-3.5 h-3.5" /> Clear all filters
-      </button>
-    )}
-  </div>
-);
+      <div className="h-px bg-brand-sand/60" />
+
+      <div>
+        <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light mb-3">
+          Color
+        </p>
+        <div className="flex flex-wrap gap-2.5">
+          {ALL_COLORS.map((color) => {
+            const active = selectedColors.includes(color);
+            return (
+              <button
+                key={color}
+                onClick={() => toggleColor(color)}
+                title={color}
+                className={`relative w-8 h-8 rounded-full transition-all duration-200 ${active
+                    ? "ring-2 ring-brand-brown ring-offset-2 ring-offset-brand-cream scale-105"
+                    : "ring-1 ring-black/10 hover:ring-brand-brown-light hover:scale-105"
+                  }`}
+                style={{ backgroundColor: COLOR_HEX[color] }}
+                aria-label={color}
+                aria-pressed={active}
+              >
+                <AnimatePresence>
+                  {active && (
+                    <motion.span
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <Check
+                        className="w-4 h-4 drop-shadow"
+                        strokeWidth={3}
+                        color={LIGHT_COLORS.has(color) ? "#4A3428" : "#F7F2EA"}
+                      />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="h-px bg-brand-sand/60" />
+
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light">
+            Max Price
+          </p>
+          <span className="relative overflow-hidden text-sm font-semibold text-brand-brown tabular-nums">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={maxPrice}
+                initial={{ y: 6, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -6, opacity: 0 }}
+                transition={{ duration: 0.12 }}
+                className="inline-block"
+              >
+                ${maxPrice}
+              </motion.span>
+            </AnimatePresence>
+          </span>
+        </div>
+        <div className="relative pt-1">
+          <input
+            type="range"
+            min={PRICE_MIN}
+            max={PRICE_MAX}
+            step={5}
+            value={maxPrice}
+            onChange={(e) => setMaxPrice(Number(e.target.value))}
+            className="w-full accent-brand-brown relative z-10"
+            aria-label="Maximum price filter"
+          />
+          <div
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-brand-brown pointer-events-none transition-all duration-150"
+            style={{ left: `calc(${pricePercent}% - 3px)` }}
+          />
+        </div>
+        <div className="flex justify-between text-xs text-brand-brown-light mt-1">
+          <span>${PRICE_MIN}</span>
+          <span>${PRICE_MAX}</span>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {hasActiveFilters && (
+          <motion.button
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            onClick={clearFilters}
+            className="flex items-center gap-1.5 text-sm text-brand-brown-light hover:text-brand-brown transition-colors overflow-hidden"
+          >
+            <X className="w-3.5 h-3.5 shrink-0" /> Clear all filters
+          </motion.button>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export default function ShopPage() {
   const allProducts = getAllProducts();
@@ -148,6 +206,11 @@ export default function ShopPage() {
 
   const hasActiveFilters =
     selectedColors.length > 0 || selectedCategory !== "all" || maxPrice < 200;
+
+  const activeFilterCount =
+    selectedColors.length +
+    (selectedCategory !== "all" ? 1 : 0) +
+    (maxPrice < 200 ? 1 : 0);
 
   const filtered = useMemo(() => {
     let result: Product[] = allProducts;
@@ -179,14 +242,24 @@ export default function ShopPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Page header */}
-      <div className="mb-10">
-        <h1 className="font-display text-5xl md:text-6xl font-bold text-brand-brown mb-2">
-          Shop All
-        </h1>
-        <p className="text-brand-brown-light">
-          {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-10"
+      >
+        <p className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light mb-2">
+          Full Collection
         </p>
-      </div>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h1 className="font-display text-5xl md:text-6xl font-bold text-brand-brown">
+            Shop All
+          </h1>
+          <span className="text-xs font-semibold tracking-widest uppercase text-brand-brown-light bg-brand-cream-dark/40 rounded-full px-3.5 py-1.5">
+            {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+      </motion.div>
 
       <div className="flex gap-10">
         {/* Desktop Sidebar */}
@@ -206,22 +279,29 @@ export default function ShopPage() {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Toolbar */}
-          <div className="flex items-center justify-between mb-6 gap-4">
+          <div className="flex items-center justify-between mb-6 gap-4 pb-4 border-b border-brand-sand/60">
             {/* Active color filters */}
             <div className="flex flex-wrap gap-2">
-              {selectedColors.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => toggleColor(c)}
-                  className="flex items-center gap-1.5 bg-brand-cream-dark text-brand-brown text-xs font-medium rounded-full px-3 py-1 hover:bg-brand-sand transition-colors"
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: COLOR_HEX[c] }}
-                  />
-                  {c} <X className="w-3.5 h-3.5" />
-                </button>
-              ))}
+              <AnimatePresence>
+                {selectedColors.map((c) => (
+                  <motion.button
+                    key={c}
+                    layout
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.15 }}
+                    onClick={() => toggleColor(c)}
+                    className="flex items-center gap-1.5 bg-brand-cream-dark text-brand-brown text-xs font-medium rounded-full px-3 py-1 hover:bg-brand-sand transition-colors"
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full ring-1 ring-black/10"
+                      style={{ backgroundColor: COLOR_HEX[c] }}
+                    />
+                    {c} <X className="w-3.5 h-3.5" />
+                  </motion.button>
+                ))}
+              </AnimatePresence>
             </div>
 
             <div className="flex items-center gap-2 shrink-0 ml-auto">
@@ -234,34 +314,44 @@ export default function ShopPage() {
                 Filters
                 {hasActiveFilters && (
                   <span className="w-4 h-4 rounded-full bg-brand-brown text-brand-cream text-[10px] flex items-center justify-center">
-                    {selectedColors.length +
-                      (selectedCategory !== "all" ? 1 : 0) +
-                      (maxPrice < 200 ? 1 : 0)}
+                    {activeFilterCount}
                   </span>
                 )}
               </button>
 
               {/* Sort dropdown */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="border border-brand-sand rounded-full px-4 py-2 text-sm font-medium text-brand-brown bg-brand-cream cursor-pointer outline-none"
-                aria-label="Sort products"
-              >
-                <option value="newest">Newest</option>
-                <option value="bestselling">Best Selling</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="appearance-none border border-brand-sand rounded-full pl-4 pr-9 py-2 text-sm font-medium text-brand-brown bg-brand-cream cursor-pointer outline-none hover:bg-brand-cream-dark/30 focus-visible:ring-2 focus-visible:ring-brand-brown/20 transition-colors"
+                  aria-label="Sort products"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="bestselling">Best Selling</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-brand-brown-light absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           {/* Product Grid */}
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="circular-patch w-24 h-24 mb-6 text-sm">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-24 text-center"
+            >
+              <motion.div
+                initial={{ scale: 0.6, rotate: -8, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 240, damping: 16 }}
+                className="circular-patch w-24 h-24 mb-6 text-sm"
+              >
                 <div className="circular-patch-inner">0</div>
-              </div>
+              </motion.div>
               <h2 className="font-display text-2xl font-semibold text-brand-brown mb-2">
                 No products found
               </h2>
@@ -274,7 +364,7 @@ export default function ShopPage() {
               >
                 Clear filters
               </button>
-            </div>
+            </motion.div>
           ) : (
             <motion.div
               className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6"
@@ -324,6 +414,7 @@ export default function ShopPage() {
                 <button
                   onClick={() => setFiltersOpen(false)}
                   className="p-1 rounded-full hover:bg-brand-cream-dark transition-colors"
+                  aria-label="Close filters"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -338,6 +429,14 @@ export default function ShopPage() {
                 hasActiveFilters={hasActiveFilters}
                 clearFilters={clearFilters}
               />
+              {hasActiveFilters && (
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="w-full mt-8 bg-brand-brown text-brand-cream rounded-full py-3 text-sm font-semibold hover:bg-brand-brown-dark transition-colors"
+                >
+                  Show {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+                </button>
+              )}
             </motion.div>
           </>
         )}

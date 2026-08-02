@@ -27,25 +27,29 @@ export default function Marquee({
 
   return (
     <div
-      className={`py-3 overflow-hidden ${className}`}
+      className={`group py-3 overflow-hidden ${className}`}
       aria-hidden="true"
     >
-      <div
-        className={`marquee-track${reverse ? " marquee-track--reverse" : ""}`}
-        style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}
-      >
-        {repeated.map((item, i) => (
-          <span
-            key={i}
-            className={`inline-flex items-center gap-3 px-5 shrink-0 whitespace-nowrap ${itemClassName}`}
-          >
+      {/* marquee-fade feathers the edges so text doesn't hard-cut at the viewport edge */}
+      <div className="marquee-fade">
+        <div
+          className={`marquee-track group-hover:[animation-play-state:paused]${reverse ? " marquee-track--reverse" : ""
+            }`}
+          style={{ "--marquee-speed": `${speed}s` } as React.CSSProperties}
+        >
+          {repeated.map((item, i) => (
             <span
-              className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${dotClassName}`}
-            />
-            {item.icon && <span>{item.icon}</span>}
-            {item.text}
-          </span>
-        ))}
+              key={i}
+              className={`inline-flex items-center gap-3 px-5 shrink-0 whitespace-nowrap ${itemClassName}`}
+            >
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${dotClassName}`}
+              />
+              {item.icon && <span>{item.icon}</span>}
+              {item.text}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

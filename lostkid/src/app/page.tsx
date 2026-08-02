@@ -96,9 +96,14 @@ export default function HomePage() {
         </AnimatedSection>
       </section>
 
+      {/* Stitched seam — reads as the sewn line between two quilted panels */}
+      <div className="stitch-divider text-brand-sand max-w-7xl mx-auto" />
+
       {/* ── BRAND STORY TEASER ───────────────────────────────────────────────── */}
-      <section className="bg-brand-brown text-brand-cream py-24 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-brand-brown text-brand-cream py-24 overflow-hidden">
+        {/* Faint quilting texture grounds the section in the actual product material */}
+        <div className="quilt-texture absolute inset-0 opacity-[0.04] text-brand-cream" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             {/* Text column */}
             <AnimatedSection direction="left">
@@ -196,12 +201,12 @@ export default function HomePage() {
                   src={img}
                   alt={alt}
                   fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-108"
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.08]"
                   sizes="(max-width: 640px) 100vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-brown/70 via-brand-brown/20 to-transparent" />
-                {/* Hover shimmer */}
-                <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-300" />
+                {/* Quilting texture surfaces on hover — same idea as the product's own stitching */}
+                <div className="quilt-texture absolute inset-0 text-brand-cream opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500" />
                 <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                   <p className="font-display text-3xl font-bold text-brand-cream">
                     {label}
@@ -255,13 +260,20 @@ export default function HomePage() {
               .slice(0, 3)
               .map((review, i) => (
                 <AnimatedSection key={review.id} delay={i * 0.1}>
-                  <blockquote className="bg-brand-cream rounded-2xl p-6 border border-brand-sand h-full hover:shadow-md transition-shadow duration-300">
+                  <blockquote className="relative bg-brand-cream rounded-2xl p-6 border border-brand-sand h-full hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    {/* Quote glyph — a quiet nod to the display face, not just a stock icon */}
+                    <span
+                      aria-hidden="true"
+                      className="quote-mark absolute top-3 right-5 text-5xl text-brand-brown/10 select-none"
+                    >
+                      &rdquo;
+                    </span>
                     <div className="flex items-center gap-1 mb-3">
                       {Array.from({ length: review.rating }).map((_, j) => (
                         <Star key={j} className="w-3.5 h-3.5 fill-brand-brown text-brand-brown" />
                       ))}
                     </div>
-                    <p className="text-sm text-brand-brown leading-relaxed mb-4">
+                    <p className="relative text-sm text-brand-brown leading-relaxed mb-4">
                       &ldquo;{review.body}&rdquo;
                     </p>
                     <footer className="flex items-center gap-2">

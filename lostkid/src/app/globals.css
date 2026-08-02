@@ -59,80 +59,125 @@
   to   { height: 0; opacity: 0; }
 }
 
-/* ── Marquee utility classes ─────────────────────────────────────── */
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll var(--marquee-speed, 28s) linear infinite;
-  will-change: transform;
-}
-.marquee-track--reverse {
-  animation-direction: reverse;
+/* ── Base layer — resets & brand defaults ────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-brand-cream);
+    color: var(--color-brand-brown);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-brown);
+    color: var(--color-brand-cream);
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-brand-cream); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-brand-sand);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand-brown-light);
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-brand-brown);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
 }
 
-/* ── Spin / Float utilities ──────────────────────────────────────── */
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
+/* ── Components layer — hand-written brand classes ───────────────────
+   IMPORTANT: these must live inside @layer, not float unlayered.
+   Tailwind v4 declares `@layer theme, base, components, utilities;`
+   and unlayered CSS always beats every layer regardless of specificity.
+   Previously these classes were unlayered, which silently broke every
+   Tailwind override attempted alongside them (e.g. the dark-hero-slide
+   patch variant in HomeHero.tsx never actually applied). Wrapping them
+   here restores the expected utilities > components precedence.
+   ────────────────────────────────────────────────────────────────── */
+@layer components {
+  /* Marquee utility classes */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll var(--marquee-speed, 28s) linear infinite;
+    will-change: transform;
+  }
+  .marquee-track--reverse {
+    animation-direction: reverse;
+  }
 
-/* ── Base Reset & Brand Defaults ─────────────────────────────────── */
-html {
-  scroll-behavior: smooth;
-}
+  /* Fades marquee edges so text doesn't hard-cut at the container edge */
+  .marquee-fade {
+    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
 
-body {
-  background-color: var(--color-brand-cream);
-  color: var(--color-brand-brown);
-  font-family: var(--font-sans);
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* Spin / Float utilities */
+  .animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
 
-/* ── Custom Text Selection ───────────────────────────────────────── */
-::selection {
-  background-color: var(--color-brand-brown);
-  color: var(--color-brand-cream);
-}
+  /* Circular Patch Badge (brand signature motif) */
+  .circular-patch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 2px dashed var(--color-brand-brown);
+    background-color: var(--color-brand-cream);
+    color: var(--color-brand-brown);
+    text-align: center;
+    font-family: var(--font-display);
+    box-shadow:
+      0 4px 12px rgba(74, 52, 40, 0.12),
+      inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  }
 
-/* ── Custom Scrollbar ────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--color-brand-cream); }
-::-webkit-scrollbar-thumb {
-  background: var(--color-brand-sand);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-brown-light);
-}
+  /* Diamond quilt pattern — echoes the puffer stitching.
+     Colored via `text-{color}` since it reads currentColor. */
+  .quilt-texture {
+    background-image:
+      repeating-linear-gradient(45deg, currentColor 0, currentColor 1px, transparent 1px, transparent 24px),
+      repeating-linear-gradient(-45deg, currentColor 0, currentColor 1px, transparent 1px, transparent 24px);
+  }
 
-/* ── Keyboard Accessibility ──────────────────────────────────────── */
-*:focus-visible {
-  outline: 2px solid var(--color-brand-brown);
-  outline-offset: 3px;
-  border-radius: 4px;
-}
+  /* Stitched seam — a dashed line standing in for a sewn seam,
+     used as a section divider instead of a bare margin. */
+  .stitch-divider {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      to right,
+      currentColor 0,
+      currentColor 6px,
+      transparent 6px,
+      transparent 13px
+    );
+  }
 
-/* ── Circular Patch Badge (brand signature motif) ────────────────── */
-.circular-patch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 2px dashed var(--color-brand-brown);
-  background-color: var(--color-brand-cream);
-  color: var(--color-brand-brown);
-  text-align: center;
-  font-family: var(--font-display);
-  box-shadow:
-    0 4px 12px rgba(74, 52, 40, 0.12),
-    inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  /* Quote glyph used on testimonial cards */
+  .quote-mark {
+    font-family: var(--font-display);
+    line-height: 1;
+  }
 }
 
 /* ── Prefers Reduced Motion ──────────────────────────────────────── */
+/* Deliberately left unlayered + !important so it always wins, no
+   matter what layer or utility tries to set an animation/transition. */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
