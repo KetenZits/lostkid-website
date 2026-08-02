@@ -161,7 +161,7 @@ export default function Footer() {
             © {new Date().getFullYear()} LOST KID. All rights reserved.
           </p>
           <p className="text-xs text-brand-cream/40">
-            Portfolio demo project — no real transactions processed.
+            Portfolio demo project — Develop By Thanapont.
           </p>
         </div>
       </div>
